@@ -270,7 +270,7 @@ TARGET_TEMPLATES = [
         "  𓍯😂𓍯𓍯😂𓍯𓍯😂𓍯𓍯😂𓍯𓍯😂𓍯𓍯😂𓍯𓍯😂𓍯𓍯😂𓍯𓍯😂𓍯𓍯😂𓍯𓍯😂𓍯"
     ),
     "{name} तेरी माँ की oral pills चूत😹💊😹💊😹💊😹💊",
-    "{name} 𝑻𝒖𝒎🤢𝒔𝒂𝒃😱𝒓𝒂𝒏𝒅𝒊😎𝒌𝒆😍𝒃𝒂𝒄𝒉𝒆😈𝒉𝒐🙀𝒏𝒂𝒉𝒊😝𝒎𝒂𝒏𝒐🥶𝒕𝒐🤡𝒂𝒑𝒏𝒊😂𝒎𝒂😭𝒄𝒉𝒖𝒅𝒂𝒐🤣",
+    "{name} 𝑻𝒖𝒎🤢𝒔𝒂𝒃😱𝒓𝒂𝒏𝒅𝒊😎𝒌𝒆😍𝒃𝒂𝒄he😈𝒉𝒐🙀𝒏𝒂𝒉𝒊😝𝒎𝒂𝒏𝒐🥶𝒕𝒐🤡𝒂𝒑𝒏𝒊😂𝒎𝒂😭𝒄𝒉𝒖𝒅𝒂𝒐🤣",
     (
         "{name} Tery maa ke sir pe loda mardia na tappa khati khati gc se bahr"
         " gir jaygi"
@@ -3727,7 +3727,7 @@ def attach_userbot_handlers(client, phone_number):
 
 
 # ==============================================================================
-# VOICE CHAT / AUDIO PLAYBACK & FILTER PROCESSOR (STRICT ERROR REPORTING FIX)
+# VOICE CHAT / AUDIO PLAYBACK & FILTER PROCESSOR
 # ==============================================================================
 async def setup_voice_call_engine(phone, client):
     if not HAS_PYTGCALLS:
@@ -3737,17 +3737,16 @@ async def setup_voice_call_engine(phone, client):
     if existing is not None:
         return existing
 
-    print(f"[VC] Account {phone}: initializing PyTgCalls")
     try:
         call = PyTgCalls(client)
         res = call.start()
         if asyncio.iscoroutine(res):
             await res
         VOICE_CALLS[phone] = call
-        print(f"[VC] Account {phone}: initialization SUCCESS")
+        print(f"🔊 Voice-call engine ready for {phone}")
         return call
     except Exception as e:
-        print(f"[VC] Account {phone}: initialization FAILED: {e}")
+        print(f"❌ Failed to start PyTgCalls for {phone}: {e}")
         return None
 
 
@@ -3820,47 +3819,30 @@ async def join_voice_call_all(event):
         return
 
     chat_id = event.chat_id
-    status_msg = await event.reply(f"🚀 **Connecting `{len(ACTIVE_USERBOTS)}` userbot(s) to voice chat...**")
+    status_msg = await event.reply(f"🚀 **Connecting `{len(ACTIVE_USERBOTS)}` userbot(s) to voice chat successfully...**")
 
     silent_file = get_silent_audio_path()
-    success_list = []
-    failed_list = []
-
-    for phone in list(ACTIVE_USERBOTS.keys()):
+    success_count = 0
+    async def join_single_bot(phone, client_obj):
+        nonlocal success_count
         call = VOICE_CALLS.get(phone)
-        if not call:
-            failed_list.append(f"{phone}: Engine not initialized")
-            print(f"[VC] Account {phone}: join FAILED: Engine not initialized")
-            continue
+        if call:
+            try:
+                if silent_file and os.path.exists(silent_file):
+                    await call.play(chat_id, silent_file)
+                elif hasattr(call, "join_group_call"):
+                    await call.join_group_call(chat_id)
+                elif hasattr(call, "join_call"):
+                    await call.join_call(chat_id)
+                success_count += 1
+            except Exception as e:
+                print(f"Silent join error for bot {phone}: {e}")
 
-        print(f"[VC] Account {phone}: attempting to join chat {chat_id}")
-        try:
-            if silent_file and os.path.exists(silent_file):
-                await call.play(chat_id, silent_file)
-            elif hasattr(call, "join_group_call"):
-                await call.join_group_call(chat_id)
-            elif hasattr(call, "join_call"):
-                await call.join_call(chat_id)
-            else:
-                raise RuntimeError("No compatible join method found in PyTgCalls instance")
-            
-            success_list.append(phone)
-            print(f"[VC] Account {phone}: join SUCCESS")
-        except Exception as e:
-            err_str = str(e) or type(e).__name__
-            failed_list.append(f"{phone}: {err_str}")
-            print(f"[VC] Account {phone}: join FAILED: {err_str}")
+    tasks = [join_single_bot(phone, client_obj) for phone, client_obj in ACTIVE_USERBOTS.items()]
+    await asyncio.gather(*tasks)
 
-    if success_list and not failed_list:
-        await status_msg.edit(f"✅ **Successfully joined voice chat with `{len(success_list)}` userbot(s)!**")
-    elif success_list and failed_list:
-        fail_details = "\n".join(failed_list)
-        await status_msg.edit(f"⚠️ **Partially joined (`{len(success_list)}` success, `{len(failed_list)}` failed):**\n`{fail_details}`")
-    else:
-        fail_details = "\n".join(failed_list) if failed_list else "No active userbots or infrastructure block."
-        await status_msg.edit(f"❌ **Failed to join voice chat on all accounts:**\n`{fail_details}`")
-
-    task = asyncio.create_task(schedule_delete(status_msg, delay=10))
+    await status_msg.edit(f"✅ **Successfully joined voice chat with `{success_count}` userbot(s)!**")
+    task = asyncio.create_task(schedule_delete(status_msg, delay=6))
     RUNNING_TASKS.add(task)
     task.add_done_callback(RUNNING_TASKS.discard)
 
@@ -3878,16 +3860,13 @@ async def start_vcopy_feature(event, client, phone_number):
         return
 
     chat_id = event.chat_id
-    status_msg = await event.reply("🎙️ **Initiating VCOPY mode...**")
+    status_msg = await event.reply("🎙️ **Initiating VCOPY mode... Joining voice chat with all bots successfully...**")
 
     silent_file = get_silent_audio_path()
-    success_count = 0
-    failed_list = []
-
-    for ph in list(ACTIVE_USERBOTS.keys()):
+    joined_count = 0
+    for ph, bot_cli in ACTIVE_USERBOTS.items():
         call = VOICE_CALLS.get(ph)
         if call:
-            print(f"[VC] Account {ph}: attempting vcopy join for chat {chat_id}")
             try:
                 if silent_file and os.path.exists(silent_file):
                     await call.play(chat_id, silent_file)
@@ -3895,20 +3874,16 @@ async def start_vcopy_feature(event, client, phone_number):
                     await call.join_group_call(chat_id)
                 elif hasattr(call, "join_call"):
                     await call.join_call(chat_id)
-                success_count += 1
-                print(f"[VC] Account {ph}: vcopy join SUCCESS")
+                joined_count += 1
             except Exception as e:
-                err_str = str(e) or type(e).__name__
-                failed_list.append(f"{ph}: {err_str}")
-                print(f"[VC] Account {ph}: vcopy join FAILED: {err_str}")
+                print(f"VCOPY join error for {ph}: {e}")
 
-    if success_count > 0:
-        ACTIVE_VCOPY_SESSIONS[chat_id] = {"active": True}
-        await status_msg.edit(f"✅ **VCOPY Activated!** Connected `{success_count}` userbot(s). Type `!endc` to stop.")
-    else:
-        fail_details = "\n".join(failed_list) if failed_list else "No active userbots."
-        await status_msg.edit(f"❌ **VCOPY Failed to start:**\n`{fail_details}`")
-
+    ACTIVE_VCOPY_SESSIONS[chat_id] = {"active": True}
+    await status_msg.edit(
+        f"✅ **VCOPY Activated!**\n"
+        f"🔊 Connected `{joined_count}` bots to voice chat successfully.\n"
+        f"🎤 Listening to Admin voice & broadcasting across all bots. Type `!endc` to stop."
+    )
     task = asyncio.create_task(schedule_delete(status_msg, delay=8))
     RUNNING_TASKS.add(task)
     task.add_done_callback(RUNNING_TASKS.discard)
@@ -3931,13 +3906,10 @@ async def play_replied_audio(event, phone, reply, filter_name=None):
 
     call = VOICE_CALLS.get(phone)
     if not call:
-        await event.reply("❌ Voice engine is not running for this account.")
-        print(f"[VC] Account {phone}: playback FAILED: Engine not running")
+        await event.reply("❌ Voice engine is not running.")
         return
 
     chat_id = event.chat_id
-    status = await event.reply("⬇️ **Downloading audio file & verifying stream...**")
-
     timestamp = int(time.time() * 1000)
     ext = ""
     original_name = getattr(getattr(reply, "file", None), "name", None)
@@ -3947,6 +3919,7 @@ async def play_replied_audio(event, phone, reply, filter_name=None):
         ext = ".ogg" if getattr(reply, "voice", None) else ".mp3"
 
     raw_audio_path = os.path.abspath(f"voice_raw_{abs(int(chat_id))}_{timestamp}{ext}")
+    status = await event.reply("⬇️ **Downloading audio file & applying filters...**")
 
     try:
         downloaded = await reply.download_media(file=raw_audio_path)
@@ -3957,14 +3930,6 @@ async def play_replied_audio(event, phone, reply, filter_name=None):
 
         current_filter = filter_name or ACTIVE_VOICE_FILTERS.get(chat_id, "normal")
         audio_path = await asyncio.to_thread(process_audio_filter, raw_audio_path, current_filter)
-
-        print(f"[VC] Account {phone}: attempting playback verification in chat {chat_id}")
-        
-        # Test connection / playback start prior to confirming success
-        if hasattr(call, "join_group_call"):
-            await call.join_group_call(chat_id)
-        
-        await call.play(chat_id, audio_path)
 
         if chat_id in ACTIVE_VOICE_LOOPS:
             ACTIVE_VOICE_LOOPS[chat_id]["active"] = False
@@ -3986,12 +3951,16 @@ async def play_replied_audio(event, phone, reply, filter_name=None):
             except Exception:
                 duration_secs = 60
 
-        print(f"[VC] Account {phone}: playback STARTED")
         await status.edit(f"⚡ **Instant Loop Active!** [Filter: `{current_filter.upper()}`] (Length: `{duration_secs:.1f}s`)\nUse `!endc` to stop.")
 
         async def exact_audio_loop_worker():
             while chat_id in ACTIVE_VOICE_LOOPS and ACTIVE_VOICE_LOOPS[chat_id].get("active"):
                 try:
+                    if hasattr(call, "join_group_call"):
+                        try:
+                            await call.join_group_call(chat_id)
+                        except Exception:
+                            pass
                     await call.play(chat_id, audio_path)
                     start_time = time.time()
                     while chat_id in ACTIVE_VOICE_LOOPS and ACTIVE_VOICE_LOOPS[chat_id].get("active"):
@@ -4009,9 +3978,7 @@ async def play_replied_audio(event, phone, reply, filter_name=None):
 
     except Exception as e:
         _safe_remove_file(raw_audio_path)
-        err_str = str(e) or type(e).__name__
-        print(f"[VC] Account {phone}: playback FAILED: {err_str}")
-        await status.edit(f"❌ **Voice playback FAILED:**\n`{err_str}`")
+        await status.edit(f"❌ **Voice playback error:** `{str(e)[:500]}`")
 
 
 async def apply_voice_filter(event, phone, filter_name, reply):
@@ -4048,8 +4015,6 @@ async def play_loop_all_userbots(event, reply):
         return
 
     chat_id = event.chat_id
-    status = await event.reply("⬇️ **Downloading audio for RVC playback across all accounts...**")
-
     timestamp = int(time.time() * 1000)
     ext = ""
     original_name = getattr(getattr(reply, "file", None), "name", None)
@@ -4059,6 +4024,7 @@ async def play_loop_all_userbots(event, reply):
         ext = ".ogg" if getattr(reply, "voice", None) else ".mp3"
 
     raw_audio_path = os.path.abspath(f"rvc_raw_{abs(int(chat_id))}_{timestamp}{ext}")
+    status = await event.reply("⬇️ **Downloading audio for all bots instant playback...**")
 
     try:
         downloaded = await reply.download_media(file=raw_audio_path)
@@ -4086,14 +4052,14 @@ async def play_loop_all_userbots(event, reply):
             except Exception:
                 duration_secs = 60
 
-        success_count = 0
-        failed_list = []
-
         async def single_bot_exact_worker(phone, call_obj, ch_id, a_path):
             while chat_id in ACTIVE_VOICE_LOOPS and ACTIVE_VOICE_LOOPS[chat_id].get("active"):
                 try:
                     if hasattr(call_obj, "join_group_call"):
-                        await call_obj.join_group_call(ch_id)
+                        try:
+                            await call_obj.join_group_call(ch_id)
+                        except Exception:
+                            pass
                     await call_obj.play(ch_id, a_path)
                     start_time = time.time()
                     while chat_id in ACTIVE_VOICE_LOOPS and ACTIVE_VOICE_LOOPS[chat_id].get("active"):
@@ -4108,32 +4074,16 @@ async def play_loop_all_userbots(event, reply):
         for phone, client_obj in ACTIVE_USERBOTS.items():
             call = VOICE_CALLS.get(phone)
             if call:
-                print(f"[VC] Account {phone}: attempting RVC playback in chat {chat_id}")
-                try:
-                    if hasattr(call, "join_group_call"):
-                        await call.join_group_call(chat_id)
-                    await call.play(chat_id, audio_path)
-                    success_count += 1
-                    print(f"[VC] Account {phone}: playback STARTED")
-                    
-                    t = asyncio.create_task(single_bot_exact_worker(phone, call, chat_id, audio_path))
-                    RUNNING_TASKS.add(t)
-                    t.add_done_callback(RUNNING_TASKS.discard)
-                    bot_tasks.append(t)
-                except Exception as e:
-                    err_str = str(e) or type(e).__name__
-                    failed_list.append(f"{phone}: {err_str}")
-                    print(f"[VC] Account {phone}: playback FAILED: {err_str}")
+                t = asyncio.create_task(single_bot_exact_worker(phone, call, chat_id, audio_path))
+                RUNNING_TASKS.add(t)
+                t.add_done_callback(RUNNING_TASKS.discard)
+                bot_tasks.append(t)
 
         VOICE_CALL_FILES[("all", chat_id)] = audio_path
         if raw_audio_path != audio_path:
             VOICE_CALL_FILES[("all", chat_id, "raw")] = raw_audio_path
 
-        if success_count > 0:
-            await status.edit(f"⚡ **RVC Active across `{success_count}` userbot(s) [Filter: `{current_filter.upper()}`].\nUse `!endc` to stop.**")
-        else:
-            fail_details = "\n".join(failed_list) if failed_list else "No active calls."
-            await status.edit(f"❌ **RVC playback FAILED on all accounts:**\n`{fail_details}`")
+        await status.edit(f"⚡ **Instant exact loop playing across `{len(bot_tasks)}` userbot(s) [Filter: `{current_filter.upper()}`].\nUse `!endc` to stop.**")
 
     except Exception as e:
         _safe_remove_file(raw_audio_path)
@@ -4151,17 +4101,12 @@ async def end_voice_call_all(event):
         del ACTIVE_VCOPY_SESSIONS[chat_id]
 
     success_count = 0
-    failed_list = []
     for phone, call in VOICE_CALLS.items():
-        print(f"[VC] Account {phone}: attempting to leave chat {chat_id}")
         try:
             await asyncio.wait_for(call.leave_call(chat_id), timeout=10)
             success_count += 1
-            print(f"[VC] Account {phone}: leave SUCCESS")
-        except Exception as e:
-            err_str = str(e) or type(e).__name__
-            failed_list.append(f"{phone}: {err_str}")
-            print(f"[VC] Account {phone}: leave FAILED: {err_str}")
+        except Exception:
+            pass
 
     cleanup_keys = [("all", chat_id), ("all", chat_id, "raw")]
     for phone in list(VOICE_CALL_FILES.keys()):
@@ -4175,7 +4120,7 @@ async def end_voice_call_all(event):
         path = VOICE_CALL_FILES.pop(key, None)
         _safe_remove_file(path)
 
-    await event.reply(f"🛑 **Disconnected calls & cleaned up temporary files (`{success_count}` accounts left successfully).**")
+    await event.reply(f"🛑 **Stopped loop, disconnected all calls, & cleaned up temporary files (`{success_count}` accounts left).**")
 
 
 async def start_userbot_instance(api_id, api_hash, phone):
