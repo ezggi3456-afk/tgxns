@@ -96,7 +96,6 @@ SETUP_STATES = {}
 VOICE_CALLS = {}
 VOICE_CALL_FILES = {}
 ACTIVE_VOICE_LOOPS = {}  # Tracks active looping voice tasks per chat
-ACTIVE_VOICE_FILTERS = {} # Tracks active audio filter per chat
 ACTIVE_VCOPY_SESSIONS = {} # Tracks active VCOPY voice copy/relay sessions per chat
 
 # Permanent Control Bot Configuration
@@ -256,7 +255,7 @@ CUD_MESSAGES = [
     "TERI BAHEN K BOSDE ME AAAG😹❤️‍🔥😹❤️‍🔥😹❤️‍🔥😹❤️‍🔥😹",
     "🫩🫩🫩Cʜᴜᴘ रंडि k kalwe मदरचोद 🤢👋🏻",
     "Cʜᴀʟ ᵇᵃᵈᵃ ᵃʸᵃ ʳⁿᵈⁱ ᵏᵃ ᵇᵃᶜʰᵃ🐄🔥🐄🔥🐄🔥?",
-    "🔺पिल्लै Tᴜᴊʜᴇ ᴍâRᴇɴɢᴇ ʏâʜɪ ᴅᴇʟʜɪ ᴍâYᴜR ᴠɪʜâR ᴍᴇ ᴊâB ᴍâRᴇɴɢᴇ ᴅᴇᴋʜ ʟᴇɴᱟ 🔥>💀",
+    "🔺पिल्लै Tᴜᴊʜᴇ ᴍâRᴇɴɢᴇ ʏâʜɪ ᴅᴇʟʜɪ ᴍâYᴜR ᴠɪʜâR ᴍᴇ ᴊâB ᴍâRᴇɴɢᴇ ᴅᴇᴋʜ ʟེᱟ 🔥>💀",
     "𝐎ყᴇ 𝐁ᴇ𝐓ꪖ 𝐓ʀყ 𝐌ㄖ𝐌 𝐑ᴀRAN德y ❤️‍🔥❤️‍🩹🤍🖤💖💛💙💔fr?",
     "𝑻𝒆𝒓𝒊 𝑴𝒂𝒂 ᵗᵃᵏⁱ 𝑯𝒆̃̃ʜ𝒆hh𝒆💖💛💚💙💜 lol",
     "GᴀʟᴀT JᴀᴡᴀB Aʙ TᴇRɪ Mᴀ Kɪ CʜᴜᴅᴀI Hᴏɢᵢ 😁🙌🏻💝🔥😶",
@@ -267,7 +266,7 @@ CUD_MESSAGES = [
 TARGET_TEMPLATES = [
     (
         "{name} CHUD TUNTUNE"
-        "  𓍯😂𓍯𓍯😂𓍯𓍯😂𓍯𓍯😂𓍯𓍯😂𓍯𓍯😂𓍯𓍯😂𓍯𓍯😂𓍯𓍯😂𓍯𓍯😂𓍯𓍯😂𓍯"
+        "  𓍯😂𓍯𓍯😂𓍯𓍯😂𓍯𓍯😂𓍯𓍯😂𓍯𓍯😂𓍯𓍯😂𓍯𓍯😂𓍯𓍯😂𓍯𓍯😂𓍯"
     ),
     "{name} तेरी माँ की oral pills चूत😹💊😹💊😹💊😹💊",
     "{name} 𝑻𝒖𝒎🤢𝒔𝒂𝒃😱𝒓𝒂𝒏𝒅𝒊😎𝒌𝒆😍𝒃𝒂𝒄he😈𝒉𝒐🙀𝒏𝒂𝒉𝒊😝𝒎𝒂𝒏𝒐🥶𝒕𝒐🤡𝒂𝒑𝒏𝒊😂𝒎𝒂😭𝒄𝒉𝒖𝒅𝒂𝒐🤣",
@@ -336,16 +335,6 @@ ALL_COMMANDS = [
     "LOOP <NAME>",
     "SLOOP",
     "DLOOP <SECONDS>",
-    "FILS",
-    "BASS R",
-    "DEEP R",
-    "SLOW R",
-    "REVERB R",
-    "NIGHTCORE R",
-    "FAST R",
-    "LOUD R",
-    "TROUBLE R",
-    "ECHO R",
     "CR",
     "PLAY <REPLY AUDIO>",
     "VCL <REPLY AUDIO>",
@@ -1080,39 +1069,8 @@ def attach_userbot_handlers(client, phone_number):
             await start_vcopy_feature(event, client, phone_number)
             return
 
-        elif text in ["!bass r", "!deep r", "!slow r", "!reverb r", "!nightcore r", "!fast r", "!loud r", "!trouble r", "!echo r"]:
-            filter_name = text.split()[0][1:]
-            ACTIVE_VOICE_FILTERS[event.chat_id] = filter_name
-            await play_loop_all_userbots(event, reply)
-            return
-
         elif text == "!cr":
             await join_voice_call_all(event)
-            return
-
-        elif text == "!fils":
-            fils_text = (
-                "🎛️ **AVAILABLE VOICE FILTERS & RVC COMMANDS**:\n\n"
-                "➤ `!bass` / `!bass r` - Heavy bass boosted sound\n"
-                "➤ `!deep` / `!deep r` - Deep pitch modified voice\n"
-                "➤ `!slow` / `!slow r` - Slowed & Reverb effect\n"
-                "➤ `!reverb` / `!reverb r` - Echoed room reverb effect\n"
-                "➤ `!nightcore` / `!nightcore r` - Fast & high pitch anime style\n"
-                "➤ `!fast` / `!fast r` - Speed up audio track\n"
-                "➤ `!loud` / `!loud r` - High volume amplifier\n"
-                "➤ `!trouble` / `!trouble r` - Distorted trouble radio effect\n"
-                "➤ `!echo` / `!echo r` - Echo delay repeating effect\n\n"
-                "💡 *Adding 'r' (e.g., `!loud r`) plays the filtered audio across ALL connected userbots instantly!*"
-            )
-            res = await event.reply(fils_text)
-            task = asyncio.create_task(schedule_delete(event, res, delay=15))
-            RUNNING_TASKS.add(task)
-            task.add_done_callback(RUNNING_TASKS.discard)
-            return
-
-        elif text in ["!bass", "!deep", "!slow", "!reverb", "!nightcore", "!fast", "!loud", "!trouble", "!echo"]:
-            filter_name = text[1:]
-            await apply_voice_filter(event, phone_number, filter_name, reply)
             return
 
         elif text == "!endc" or text.startswith("!endc "):
@@ -3727,7 +3685,7 @@ def attach_userbot_handlers(client, phone_number):
 
 
 # ==============================================================================
-# VOICE CHAT / AUDIO PLAYBACK & FILTER PROCESSOR
+# VOICE CHAT / AUDIO PLAYBACK PROCESSOR
 # ==============================================================================
 async def setup_voice_call_engine(phone, client):
     if not HAS_PYTGCALLS:
@@ -3758,39 +3716,6 @@ def _safe_remove_file(path):
             os.remove(path)
     except Exception as e:
         print(f"⚠️ Could not remove voice file {path}: {e}")
-
-
-def process_audio_filter(input_path, filter_name):
-    if not filter_name or filter_name == "normal":
-        return input_path
-    
-    output_path = input_path.replace(".mp3", f"_{filter_name}.mp3").replace(".ogg", f"_{filter_name}.ogg")
-    
-    filters_map = {
-        "bass": "bass=g=15:f=110:w=0.6",
-        "deep": "asetrate=44100*0.8,aresample=44100,atempo=1.0",
-        "slow": "atempo=0.8,aresample=44100,aecho=0.8:0.88:60:0.4",
-        "reverb": "aecho=0.8:0.88:60:0.4",
-        "nightcore": "asetrate=44100*1.25,aresample=44100,atempo=1.0",
-        "fast": "atempo=1.25,aresample=44100",
-        "loud": "volume=3.0",
-        "trouble": "vibrato=f=12:d=0.7,volume=2.0",
-        "echo": "aecho=0.8:0.9:1000:0.5"
-    }
-    
-    ff_filter = filters_map.get(filter_name)
-    if not ff_filter:
-        return input_path
-
-    try:
-        cmd = ["ffmpeg", "-y", "-i", input_path, "-af", ff_filter, output_path]
-        subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
-        if os.path.exists(output_path):
-            return output_path
-    except Exception as e:
-        print(f"FFmpeg Filter Error ({filter_name}): {e}")
-    
-    return input_path
 
 
 def get_silent_audio_path():
@@ -3889,7 +3814,7 @@ async def start_vcopy_feature(event, client, phone_number):
     task.add_done_callback(RUNNING_TASKS.discard)
 
 
-async def play_replied_audio(event, phone, reply, filter_name=None):
+async def play_replied_audio(event, phone, reply):
     if not HAS_PYTGCALLS:
         await event.reply("❌ **Voice playback is not installed.**\nRun: `pip install -U py-tgcalls`")
         return
@@ -3918,18 +3843,15 @@ async def play_replied_audio(event, phone, reply, filter_name=None):
     if not ext:
         ext = ".ogg" if getattr(reply, "voice", None) else ".mp3"
 
-    raw_audio_path = os.path.abspath(f"voice_raw_{abs(int(chat_id))}_{timestamp}{ext}")
-    status = await event.reply("⬇️ **Downloading audio file & applying filters...**")
+    audio_path = os.path.abspath(f"voice_raw_{abs(int(chat_id))}_{timestamp}{ext}")
+    status = await event.reply("⬇️ **Downloading audio file...**")
 
     try:
-        downloaded = await reply.download_media(file=raw_audio_path)
-        if not downloaded or not os.path.exists(raw_audio_path):
+        downloaded = await reply.download_media(file=audio_path)
+        if not downloaded or not os.path.exists(audio_path):
             await status.edit("❌ **Failed to download the replied audio.**")
-            _safe_remove_file(raw_audio_path)
+            _safe_remove_file(audio_path)
             return
-
-        current_filter = filter_name or ACTIVE_VOICE_FILTERS.get(chat_id, "normal")
-        audio_path = await asyncio.to_thread(process_audio_filter, raw_audio_path, current_filter)
 
         if chat_id in ACTIVE_VOICE_LOOPS:
             ACTIVE_VOICE_LOOPS[chat_id]["active"] = False
@@ -3937,8 +3859,6 @@ async def play_replied_audio(event, phone, reply, filter_name=None):
 
         ACTIVE_VOICE_LOOPS[chat_id] = {"active": True}
         VOICE_CALL_FILES[(phone, chat_id)] = audio_path
-        if raw_audio_path != audio_path:
-            VOICE_CALL_FILES[(phone, chat_id, "raw")] = raw_audio_path
 
         audio_attr = getattr(reply, "audio", None) or getattr(reply, "voice", None)
         duration_secs = getattr(audio_attr, "duration", 0) if audio_attr else 0
@@ -3951,7 +3871,7 @@ async def play_replied_audio(event, phone, reply, filter_name=None):
             except Exception:
                 duration_secs = 60
 
-        await status.edit(f"⚡ **Instant Loop Active!** [Filter: `{current_filter.upper()}`] (Length: `{duration_secs:.1f}s`)\nUse `!endc` to stop.")
+        await status.edit(f"⚡ **Instant Loop Active!** (Length: `{duration_secs:.1f}s`)\nUse `!endc` to stop.")
 
         async def exact_audio_loop_worker():
             while chat_id in ACTIVE_VOICE_LOOPS and ACTIVE_VOICE_LOOPS[chat_id].get("active"):
@@ -3977,22 +3897,8 @@ async def play_replied_audio(event, phone, reply, filter_name=None):
         ACTIVE_VOICE_LOOPS[chat_id]["task"] = loop_task
 
     except Exception as e:
-        _safe_remove_file(raw_audio_path)
+        _safe_remove_file(audio_path)
         await status.edit(f"❌ **Voice playback error:** `{str(e)[:500]}`")
-
-
-async def apply_voice_filter(event, phone, filter_name, reply):
-    chat_id = event.chat_id
-    ACTIVE_VOICE_FILTERS[chat_id] = filter_name
-    
-    if chat_id in ACTIVE_VOICE_LOOPS and ACTIVE_VOICE_LOOPS[chat_id].get("active"):
-        await event.reply(f"🎛️ **Applied Filter:** `{filter_name.upper()}`. Restarting playback...")
-        await play_replied_audio(event, phone, reply, filter_name=filter_name)
-    else:
-        res = await event.reply(f"✅ **Default Voice Filter set to:** `{filter_name.upper()}`. Use `!play` to start.")
-        task = asyncio.create_task(schedule_delete(event, res, delay=5))
-        RUNNING_TASKS.add(task)
-        task.add_done_callback(RUNNING_TASKS.discard)
 
 
 async def play_loop_all_userbots(event, reply):
@@ -4023,18 +3929,15 @@ async def play_loop_all_userbots(event, reply):
     if not ext:
         ext = ".ogg" if getattr(reply, "voice", None) else ".mp3"
 
-    raw_audio_path = os.path.abspath(f"rvc_raw_{abs(int(chat_id))}_{timestamp}{ext}")
+    audio_path = os.path.abspath(f"rvc_raw_{abs(int(chat_id))}_{timestamp}{ext}")
     status = await event.reply("⬇️ **Downloading audio for all bots instant playback...**")
 
     try:
-        downloaded = await reply.download_media(file=raw_audio_path)
-        if not downloaded or not os.path.exists(raw_audio_path):
+        downloaded = await reply.download_media(file=audio_path)
+        if not downloaded or not os.path.exists(audio_path):
             await status.edit("❌ **Failed to download the audio file.**")
-            _safe_remove_file(raw_audio_path)
+            _safe_remove_file(audio_path)
             return
-
-        current_filter = ACTIVE_VOICE_FILTERS.get(chat_id, "normal")
-        audio_path = await asyncio.to_thread(process_audio_filter, raw_audio_path, current_filter)
 
         if chat_id in ACTIVE_VOICE_LOOPS:
             ACTIVE_VOICE_LOOPS[chat_id]["active"] = False
@@ -4080,13 +3983,11 @@ async def play_loop_all_userbots(event, reply):
                 bot_tasks.append(t)
 
         VOICE_CALL_FILES[("all", chat_id)] = audio_path
-        if raw_audio_path != audio_path:
-            VOICE_CALL_FILES[("all", chat_id, "raw")] = raw_audio_path
 
-        await status.edit(f"⚡ **Instant exact loop playing across `{len(bot_tasks)}` userbot(s) [Filter: `{current_filter.upper()}`].\nUse `!endc` to stop.**")
+        await status.edit(f"⚡ **Instant exact loop playing across `{len(bot_tasks)}` userbot(s).\nUse `!endc` to stop.**")
 
     except Exception as e:
-        _safe_remove_file(raw_audio_path)
+        _safe_remove_file(audio_path)
         await status.edit(f"❌ **RVC playback error:** `{str(e)[:500]}`")
 
 
@@ -4108,13 +4009,12 @@ async def end_voice_call_all(event):
         except Exception:
             pass
 
-    cleanup_keys = [("all", chat_id), ("all", chat_id, "raw")]
+    cleanup_keys = [("all", chat_id)]
     for phone in list(VOICE_CALL_FILES.keys()):
         if isinstance(phone, tuple) and len(phone) > 1 and phone[1] == chat_id:
             cleanup_keys.append(phone)
         elif isinstance(phone, str) and phone != "all":
             cleanup_keys.append((phone, chat_id))
-            cleanup_keys.append((phone, chat_id, "raw"))
 
     for key in cleanup_keys:
         path = VOICE_CALL_FILES.pop(key, None)
