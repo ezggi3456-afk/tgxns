@@ -1,2 +1,2 @@
 [phases.setup]
-nixPkgs = ["ffmpeg", "libopus", "gcc"]
+nixPkgs = ["ffmpeg", "libopus", "gcc", "ffmpeg-full"]
